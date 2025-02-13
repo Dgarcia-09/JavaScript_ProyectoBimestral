@@ -17,6 +17,7 @@ const middlewares = (app) => {
 }
 
 const routes = (app) =>{
+    app.use("/gestionTienda/v1/auth", authRoutes)
 }
 
 const conectarDB = async () =>{
