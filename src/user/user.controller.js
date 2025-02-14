@@ -3,8 +3,53 @@ import User from "./user.model.js";
 import fs from "fs/promises";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
+import { hasRoles } from "../middlewares/validate-roles.js";
+import User from "./user.model.js"
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
+
+
+export const modifyRole = [
+  hasRoles("ADMIN_ROLE"), 
+  async (req, res) => {
+    try {
+      const { uid } = req.params;
+      const { newRole } = req.body; 
+
+      const user = await User.findById(uid);
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          message: "Usuario no encontrado",
+        })
+      }
+
+      if (user.role === newRole) {
+        return res.status(400).json({
+          success: false,
+          message: "Ingrese un rol diferente al rol actual",
+        })
+      }
+
+      user.role = newRole;
+      await user.save();
+
+      return res.status(200).json({
+        success: true,
+        message: "Rol actualizado",
+        user,
+      })
+    } catch (err) {
+      return res.status(500).json({
+        success: false,
+        message: "Error al actualizar el rol",
+        error: err.message,
+      })
+    }
+  }
+];
+
+
 
 export const getUserById = async (req, res) => {
     try {

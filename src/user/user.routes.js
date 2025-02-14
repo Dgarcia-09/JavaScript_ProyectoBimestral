@@ -1,9 +1,11 @@
 import { Router } from "express"
-import { getUserById, getUsers, deleteUser, updatePassword, updateUser, actualizarFotoPerfil} from "./user.controller.js"
+import { getUserById, getUsers, deleteUser, updatePassword, updateUser, actualizarFotoPerfil, modifyRole  } from "./user.controller.js"
 import { getUserByIdValidator, deleteUserValidator, updatePasswordValidator, updateUserValidator, actualizarFotoPerfilValidator } from "../middlewares/user-validators.js"
 import { uploadProfilePicture } from "../middlewares/multer-uploads.js"
 
 const router = Router()
+
+router.get("/modifyRole/:uid", modifyRole)
 
 router.get("/findUser/:uid", getUserByIdValidator, getUserById)
 
