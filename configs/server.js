@@ -6,6 +6,8 @@ import helmet from "helmet"
 import morgan from "morgan"
 import { dbConnection } from "./mongo.js"
 import apiLimiter from "../src/middlewares/rate-limit-validator.js"
+import authRoutes from "../src/auth/auth.routes.js"
+import {swaggerDocs, swaggerUi} from "./swagger.js" 
 
 const middlewares = (app) => {
     app.use(express.urlencoded({extended: false}))
@@ -14,11 +16,13 @@ const middlewares = (app) => {
     app.use(helmet())
     app.use(morgan("dev"))
     app.use(apiLimiter)
+    app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocs))
 }
 
 const routes = (app) =>{
-    app.use("/gestionTienda/v1/auth", authRoutes)
-}
+    app.use("/gestionTienda/v1/auth", authRoutes);
+};
+
 
 const conectarDB = async () =>{
     try{
@@ -30,14 +34,16 @@ const conectarDB = async () =>{
 }
 
 export const initServer = () => {
-    const app = express()
-    try{
-        middlewares(app)
-        conectarDB()
-        routes(app)
-        app.listen(process.env.PORT)
-        console.log(`Server running on port ${process.env.PORT}`)
-    }catch(err){
-        console.log(`Server init failed: ${err}`)
+    const app = express();
+    try {
+        middlewares(app);
+        conectarDB();
+        routes(app);
+        const port = process.env.PORT || 3001; 
+        app.listen(port, () => {
+            console.log(`Server running on port ${port}`);
+        });
+    } catch (err) {
+        console.log(`Server init failed: ${err}`);
     }
-}
+};
