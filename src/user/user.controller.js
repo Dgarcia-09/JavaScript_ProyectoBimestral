@@ -1,53 +1,66 @@
-import { hash, verify } from "argon2";
-import User from "./user.model.js";
-import fs from "fs/promises";
-import { join, dirname } from "path";
-import { fileURLToPath } from "url";
-import { hasRoles } from "../middlewares/validate-roles.js";
+import { hash, verify } from "argon2"
 import User from "./user.model.js"
+import fs from "fs/promises"
+import { join, dirname } from "path"
+import { fileURLToPath } from "url"
+import { hasRoles } from "../middlewares/validate-roles.js"
+import User from "./user.model.js"
+
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 
-export const modifyRole = [
-  hasRoles("ADMIN_ROLE"), 
-  async (req, res) => {
+export const modifyRole = async (req, res) => {
     try {
       const { uid } = req.params;
-      const { newRole } = req.body; 
-
-      const user = await User.findById(uid);
-      if (!user) {
-        return res.status(404).json({
-          success: false,
-          message: "Usuario no encontrado",
-        })
-      }
-
-      if (user.role === newRole) {
+      const { role } = req.body;
+      const aUser = req.usuario;
+  
+      if (aUser.role !== "ADMIN_ROLE") {
         return res.status(400).json({
           success: false,
-          message: "Ingrese un rol diferente al rol actual",
-        })
+          message: "No tienes permisos para modificar roles"
+        });
       }
-
-      user.role = newRole;
+  
+      const user = await User.findById(uid);
+      if (!user) {
+        return res.status(400).json({
+          success: false,
+          message: "Usuario no encontrado"
+        });
+      }
+  
+      if (user.role === "ADMIN_ROLE" && role === "ADMIN_ROLE") {
+        return res.status(400).json({
+          success: false,
+          message: "No puedes cambiar un admin por un admin"
+        });
+      }
+      if (user.role === "CLIENT_ROLE" && role === "CLIENT_ROLE") {
+        return res.status(400).json({
+          success: false,
+          message: "El cliente ya es un cliente xd"
+        });
+      }
+  
+      user.role = role;
       await user.save();
-
+  
       return res.status(200).json({
         success: true,
-        message: "Rol actualizado",
-        user,
-      })
+        message: "Rol actualizado correctamente",
+        user
+      });
     } catch (err) {
       return res.status(500).json({
         success: false,
         message: "Error al actualizar el rol",
-        error: err.message,
-      })
+        error: err.message
+      });
     }
-  }
-];
+  };
+  
 
 
 
@@ -104,23 +117,39 @@ export const getUsers = async (req, res) => {
 
 export const deleteUser = async (req, res) => {
     try {
-        const { uid } = req.params;
-
-        const user = await User.findByIdAndUpdate(uid, { status: false }, { new: true });
-
-        return res.status(200).json({
-            success: true,
-            message: "Usuario eliminado",
-            user
+      const { uid } = req.params;
+      const {role} = req.body;
+      const aUser = req.usuario;
+  
+      if (aUser.role !== "ADMIN_ROLE") {
+        return res.status(400).json({
+          success: false,
+          message: "No tienes permitido eliminar usuarios"
         });
+      }
+  
+      const user = await User.findByIdAndUpdate(uid, { status: false }, { new: true });
+  
+      if (!user) {
+        return res.status(400).json({
+          success: false,
+          message: "Usuario no encontrado"
+        });
+      }
+  
+      return res.status(200).json({
+        success: true,
+        message: "Usuario eliminado",
+        user
+      });
     } catch (err) {
-        return res.status(500).json({
-            success: false,
-            message: "Error al eliminar el usuario",
-            error: err.message
-        });
+      return res.status(500).json({
+        success: false,
+        message: "Error al eliminar el usuario",
+        error: err.message
+      });
     }
-};
+  };
 
 export const updatePassword = async (req, res) => {
     try {
