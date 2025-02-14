@@ -1,21 +1,45 @@
 import { Router } from "express"
-import { getUserById, getUsers, deleteUser, updatePassword, updateUser, actualizarFotoPerfil} from "./user.controller.js"
-import { getUserByIdValidator, deleteUserValidator, updatePasswordValidator, updateUserValidator, actualizarFotoPerfilValidator } from "../middlewares/user-validators.js"
+import { getUserById, getUsers, deleteUser, updatePassword, updateUser, actualizarFotoPerfil, modifyRole, deleteMyUser } from "./user.controller.js"
+import { getUserByIdValidator, deleteUserValidator, updatePasswordValidator, updateUserValidator, actualizarFotoPerfilValidator, modifyRoleValidation } from "../middlewares/user-validators.js"
 import { uploadProfilePicture } from "../middlewares/multer-uploads.js"
 
 const router = Router()
 
-router.get("/findUser/:uid", getUserByIdValidator, getUserById)
+router.patch(
+    "/modifyRole/:uid", 
+    modifyRole, 
+    modifyRoleValidation )
 
-router.get("/", getUsers)
+router.get(
+    "/findUser/:uid", 
+    getUserByIdValidator, 
+    getUserById)
 
-router.delete("/deleteUser/:uid", deleteUserValidator, deleteUser)
+router.get(
+    "/", 
+    getUsers)
 
-router.patch("/updatePassword/:uid", updatePasswordValidator, updatePassword)
+router.delete(
+    "/deleteUser/:uid", 
+    deleteUserValidator, 
+    deleteUser)
 
-router.put("/updateUser/:uid", updateUserValidator, updateUser)
+router.patch(
+    "/updatePassword/:uid", 
+    updatePasswordValidator, 
+    updatePassword)
 
-router.patch("/actualizarFotoPerfil/:uid", uploadProfilePicture.single("profilePicture"),
-actualizarFotoPerfilValidator, actualizarFotoPerfil)
+router.put(
+    "/updateUser/:uid", 
+    updateUserValidator, 
+    updateUser)
+
+router.patch(
+    "/actualizarFotoPerfil/:uid", 
+    uploadProfilePicture.single("profilePicture"),actualizarFotoPerfilValidator, actualizarFotoPerfil)
+
+router.delete("/deleteMyUser/:uid",
+    deleteMyUser
+)
 
 export default router
